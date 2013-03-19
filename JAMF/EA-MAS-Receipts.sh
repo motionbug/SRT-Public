@@ -30,7 +30,8 @@ log_dir="/Library/Logs/${logtag}"
 LogFile="${logtag}-${logDate}.log"
 
 ### Script Variables
-DSPersonID=`defaults read com.apple.storeagent DSPersonID`
+cUser=`ps -jax | grep [c]onsole | awk '{print $1}'`
+DSPersonID=`defaults read /Users/"${cUser}"/Library/Preferences/com.apple.storeagent DSPersonID`
 apps="/Applications/"
 receipt="/Contents/_MASReceipt/receipt"
 tmpPath="/tmp/MASreceipts/"
