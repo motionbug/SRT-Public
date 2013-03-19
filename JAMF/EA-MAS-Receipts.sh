@@ -34,6 +34,7 @@ DSPersonID=`defaults read com.apple.storeagent DSPersonID`
 apps="/Applications/"
 receipt="/Contents/_MASReceipt/receipt"
 tmpPath="/tmp/MASreceipts/"
+idTotal=`count "${tmpPath}"*`
 
 ### Script Functions
 # Search the /Applications folder, find all "MAS" applications (i.e. the app has an _MASReceipt/receipt item)
@@ -55,19 +56,23 @@ payload () {
 
 # Search the tmp folder of Bundle identifier info, and extract the ID that is embedded.
 receiptSearch () {
-	for MAS in "${tmpPath}"* ; do
-		#echo $(basename "$MAS")
-		[ -e "${MAS}" ] && { MSPersonID "${MAS}"; }
-	done
+	if [ "${idTotal}" != 0 ]; then
+		echo "<result>"
+		for MAS in "${tmpPath}"* ; do
+			#echo $(basename "$MAS")
+			[ -e "${MAS}" ] && { MSPersonID "${MAS}"; }
+		done
+		echo "</result>"
+	fi
 }
 
 # Report if the com.apple.storeagent matches the ID of the MAS app.
 MSPersonID () {
 	PID=`printf "%d\n" 0x$(openssl asn1parse -inform der -in "${1}" | grep -A 2 ':04$' | tail -1 | cut -d: -f4 | cut -c5-)`
-	[ "${PID}" == "${DSPersonID}" ] && { echo "<result>$(basename "$1") matches MAS Apple ID</result>"; } || { echo "<result>$(basename "$1") DOES NOT Match</result>"; }
+	[ "${PID}" == "${DSPersonID}" ] && { echo "$(basename "$1") matches MAS Apple ID"; } || { echo "$(basename "$1") DOES NOT Match"; }
 }
 
 # Just in case if the App Store is not set with an ID, validate that it is not blank.  
 # Not sure if this is a accurate test, but till I get some feed back this is better than nothing. 
-[ "${DSPersonID}" != "" ] && { appSearch; receiptSearch; }
+[ "${DSPersonID}" != "" ] && { appSearch; receiptSearch; } || { echo "<result>com.apple.storeagent not set</result>"; }
 exit 0
