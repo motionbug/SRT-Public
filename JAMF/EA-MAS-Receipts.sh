@@ -46,7 +46,7 @@ appSearch () {
 		if [ -d "${app}" ]; then
 			#echo $(basename "$app")
 			#[ -e "${app}${receipt}" ] && { echo "${app}"; }
-			[ -e "${app}${receipt}" ] && { payload "${app}${receipt}" $(basename "$app"); }
+			[ -e "${app}${receipt}" ] && { payload "${app}${receipt}" "$(basename "$app")"; }
 		fi
 	done
 }
