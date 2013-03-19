@@ -10,7 +10,7 @@
 # Version 1.0.0 - 2013-03-19
 
 # Modified by
-# Version 
+# Version 1.0.1 2013-03-19 by Justin  see commit notes.
 
 
 ### Description 
