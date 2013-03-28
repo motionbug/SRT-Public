@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # This script was developed BY Stony River Technologies (SRT)
-# ALL scripts are covered by SRT's Licnese found at:
+# ALL scripts are covered by SRT's License found at:
 # https://raw.github.com/stonyrivertech/SRT-Public/master/LICENSE 
 
 # Created by Justin Rummel

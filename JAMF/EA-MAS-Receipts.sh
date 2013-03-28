@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # This script was developed BY Stony River Technologies (SRT)
-# ALL scripts are covered by SRT's Licnese found at:
+# ALL scripts are covered by SRT's License found at:
 # https://raw.github.com/stonyrivertech/SRT-Public/master/LICENSE 
 #
 # Discovery on HOW to do this by Magervalp: http://magervalp.github.com/2013/03/19/poking-around-in-masreceipts.html 
