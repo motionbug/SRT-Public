@@ -31,7 +31,7 @@ LogFile="${logtag}-${logDate}.log"
 # Script Variables
 javaVendor=`/usr/bin/defaults read /Library/Internet\ Plug-Ins/JavaAppletPlugin.plugin/Contents/Info CFBundleIdentifier`
 javaVersion=`/usr/bin/defaults read /Library/Internet\ Plug-Ins/JavaAppletPlugin.plugin/Contents/Info CFBundleShortVersionString`
-javaProject=`/usr/bin/defaults read /Library/Internet\ Plug-Ins/JavaAppletPlugin.plugin/Contents/version ProjectName`
+javaProject=`/usr/bin/defaults read /Library/Internet\ Plug-Ins/JavaAppletPlugin.plugin/Contents/version ProjectName 2>/dev/null`
 
 
 # Script Functions
