@@ -17,11 +17,13 @@
 # variables
 cdMNT="/mnt/cdrom/"
 cdDEV="/dev/cdrom/"
-vmTGZ=`find "${cdMNT}" -name "VMwareTools*"`
 
 ### Be sure to select "Install VMWare Tools" from the "Virtual Machine" dropdown menu in VMWare Fusion
 [ ! -d "${cdMNT}" ] && { echo "creating ${cdMNT}"; sudo mkdir "${cdMNT}"; } || { echo "${cdMNT} already exists.  Moving on..."; }
 [ ! -d "${cdDEV}" ] && { echo "mounting ${cdDEV} to ${cdMNT}"; sudo mount "${cdDEV}" "${cdMNT}"; }
+
+vmTGZ=`find "${cdMNT}" -name "VMwareTools*"` 2>/dev/null
+
 cd /tmp
 if [ -e "${vmTGZ}" ]; then
 	cp "${cdMNT}${vmTGZ}" ./
