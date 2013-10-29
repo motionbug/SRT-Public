@@ -4,7 +4,7 @@
 # ALL scripts are covered by SRT's License found at:
 # https://raw.github.com/stonyrivertech/SRT-Public/master/LICENSE 
 
-# Version 1.0.0 - 12/15/2012
+# Version 1.1.0 - 2013-10-29
 
 ### Description 
 # Goal is to find out what vesion of the OS is running, PLUS if the machine is a client or server.
@@ -33,6 +33,6 @@ newSchool () {
 	echo "<result>${productName2} ${productVersion} (${buildVersion})</result>"
 }
 
-[ "${osx}" == "8" ] && { newSchool; } || { oldSchool; }
+[ "${osx}" > "7" ] && { newSchool; } || { oldSchool; }
 
 exit 0
