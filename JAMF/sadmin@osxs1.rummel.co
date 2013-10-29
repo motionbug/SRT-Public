@@ -33,6 +33,6 @@ newSchool () {
 	echo "<result>${productName2} ${productVersion} (${buildVersion})</result>"
 }
 
-[[ "${osx}" > "7" ]] && { newSchool; } || { oldSchool; }
+[ "${osx}" > "7" ] && { newSchool; } || { oldSchool; }
 
 exit 0
