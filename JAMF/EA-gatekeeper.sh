@@ -4,7 +4,7 @@
 # ALL scripts are covered by SRT's License found at:
 # https://raw.github.com/stonyrivertech/SRT-Public/master/LICENSE 
 
-# Version 1.0.0 - 12/15/2012
+# Version 1.1.0 - 2013-11-02
 
 ### Description 
 # Goal is to find out if Gatekeeper is active.
@@ -32,7 +32,7 @@ function mtLionGatekeeper () {
 		[ "${gatekeeper_status}" == "disabled" ] && { echo "<result>Disabled</result>"; } || { echo "<result>Active</result>"; }
 }
 
-[ "${osminor}" \< "7" ] && { echo "<result>Gatekeeper N/A for this OS</result>"; }
-[ "${osminor}" == "7" ] && { lionGatekeeper; }
-[ "${osminor}" == "8" ] && { mtLionGatekeeper; }
+[[ "${osminor}" < "7" ]] && { echo "<result>Gatekeeper N/A for this OS</result>"; }
+[[ "${osminor}" == "7" ]] && { lionGatekeeper; }
+[[ "${osminor}" > "7" ]] && { mtLionGatekeeper; }
 exit 0
