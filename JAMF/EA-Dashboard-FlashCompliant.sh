@@ -2,17 +2,17 @@
 
 # This script was developed BY Stony River Technologies (SRT)
 # ALL scripts are covered by SRT's License found at:
-# https://raw.github.com/stonyrivertech/SRT-Public/master/LICENSE 
+# https://raw.github.com/stonyrivertech/SRT-Public/master/LICENSE
 
 # Created by Justin Rummel
-# Version 1.0.0 - 2013-09-11
+# Version 1.0.1 - 2014-02-05
 
-# Modified by
-# Version 
+# Modified by Justin
+# Version 1.0.1 reversed logic to find if compliant vs. not compliant.
 
 
-### Description 
-#  Find the current installed version of Flash.  
+### Description
+#  Find the current installed version of Flash.
 #  And compare to XProtect
 
 # Base Variables that I use for all scripts.  Creates Log files and sets date/time info
@@ -30,7 +30,7 @@ LogFile="${logtag}-${logDate}.log"
 
 # Script Variables
 #Flash (not sure why there is a .lzma in one of my test machines, but this way I find the plugin that is installed!)
-fPlugin=`find /Library/Internet\ Plug-Ins -name "Flash*" -d 1 | awk -F "/" {'print $4'}` 
+fPlugin=`find /Library/Internet\ Plug-Ins -name "Flash*" -d 1 | awk -F "/" {'print $4'}`
 flashVendor=`/usr/bin/defaults read /Library/Internet\ Plug-Ins/"${fPlugin}"/Contents/Info CFBundleIdentifier`
 flashVersion=`/usr/bin/defaults read /Library/Internet\ Plug-Ins/"${fPlugin}"/Contents/Info CFBundleVersion`
 
@@ -46,7 +46,7 @@ adobeFlash () {
 
 	#echo "${appleX}"
 	#echo "${flashVersion}"
-	
+
 	Xoct1=`echo "${appleX}" | awk -F "." '{print $1}'`
 	Xoct2=`echo "${appleX}" | awk -F "." '{print $2}'`
 	Xoct3=`echo "${appleX}" | awk -F "." '{print $3}'`
@@ -57,15 +57,15 @@ adobeFlash () {
 	oct3=`echo "${flashVersion}" | awk -F "." '{print $3}'`
 	oct4=`echo "${flashVersion}" | awk -F "." '{print $4}'`
 
-	#echo "$Xoct1 > $oct1"
-	#echo "$Xoct2 > $oct2"
-	#echo "$Xoct3 > $oct3"
+	#echo "$oct1 > $Xoct1"
+	#echo "$oct2 > $Xoct2"
+	#echo "$oct3 > $Xoct3"
 	#echo "$Xoct4 > $oct4"
 
-	[[ "${Xoct1}" -gt "${oct1}" ]] && { echo "<result>Outdated</result>"; exit 0; }
-	[[ "${Xoct2}" -gt "${oct2}" ]] && { echo "<result>Outdated</result>"; exit 0; }
-	[[ "${Xoct3}" -gt "${oct3}" ]] && { echo "<result>Outdated</result>"; exit 0; }
-	[[ "${Xoct4}" -gt "${oct4}" ]] && { echo "<result>Outdated</result>"; exit 0; } || { echo "<result>Compliant</result>"; }
+	[[ "${oct1}" -gt "${Xoct1}" ]] && { echo "<result>Compliant</result>"; exit 0; }
+	[[ "${oct2}" -gt "${Xoct2}" ]] && { echo "<result>Compliant</result>"; exit 0; }
+	[[ "${oct3}" -gt "${Xoct3}" ]] && { echo "<result>Compliant</result>"; exit 0; }
+	[[ "${oct4}" -gt "${Xoct4}" ]] && { echo "<result>Compliant</result>"; exit 0; } || { echo "<result>Not Compliant</result>"; }
 }
 
 [ "$flashVendor" == "" ] && { echo "<result>Flash Plug-In Not Available</result>"; exit 0; } || { adobeFlash; }
