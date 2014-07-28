@@ -44,8 +44,8 @@ metaFile="XProtect.meta.plist"
 adobeFlash () {
 	appleX=`/usr/libexec/PlistBuddy -c "print :PlugInBlacklist:10:com.macromedia.Flash\ Player.plugin:MinimumPlugInBundleVersion" "${sourceDir}${metaFile}"`
 
-	#echo "${appleX}"
-	#echo "${flashVersion}"
+#	echo "${appleX}"
+#	echo "${flashVersion}"
 
 	Xoct1=`echo "${appleX}" | awk -F "." '{print $1}'`
 	Xoct2=`echo "${appleX}" | awk -F "." '{print $2}'`
@@ -57,15 +57,15 @@ adobeFlash () {
 	oct3=`echo "${flashVersion}" | awk -F "." '{print $3}'`
 	oct4=`echo "${flashVersion}" | awk -F "." '{print $4}'`
 
-	#echo "$oct1 > $Xoct1"
-	#echo "$oct2 > $Xoct2"
-	#echo "$oct3 > $Xoct3"
-	#echo "$Xoct4 > $oct4"
+#	echo "$oct1 -ge $Xoct1"
+#	echo "$oct2 -ge $Xoct2"
+#	echo "$oct3 -ge $Xoct3"
+#	echo "$oct4 -ge $Xoct4"
 
-	[[ "${oct1}" -gt "${Xoct1}" ]] && { echo "<result>Compliant</result>"; exit 0; }
-	[[ "${oct2}" -gt "${Xoct2}" ]] && { echo "<result>Compliant</result>"; exit 0; }
-	[[ "${oct3}" -gt "${Xoct3}" ]] && { echo "<result>Compliant</result>"; exit 0; }
-	[[ "${oct4}" -gt "${Xoct4}" ]] && { echo "<result>Compliant</result>"; exit 0; } || { echo "<result>Not Compliant</result>"; }
+	[[ "${oct1}" -ge "${Xoct1}" ]] && { echo "<result>Compliant</result>"; exit 0; }
+	[[ "${oct2}" -ge "${Xoct2}" ]] && { echo "<result>Compliant</result>"; exit 0; }
+	[[ "${oct3}" -ge "${Xoct3}" ]] && { echo "<result>Compliant</result>"; exit 0; }
+	[[ "${oct4}" -ge "${Xoct4}" ]] && { echo "<result>Compliant</result>"; exit 0; } || { echo "<result>Not Compliant</result>"; }
 }
 
 [ "$flashVendor" == "" ] && { echo "<result>Flash Plug-In Not Available</result>"; exit 0; } || { adobeFlash; }
