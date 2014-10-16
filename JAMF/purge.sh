@@ -7,9 +7,8 @@
 # Created by Justin Rummel
 # Version 1.0.0 - 2013-11-17
 
-# Modified by
-# Version 
-
+# Modified by Justin Rummel
+# Vesion 1.0.1 - 2014-10-16
 
 ### Description 
 # Goal is to use the purge command to clear out unused memory.  
@@ -38,29 +37,30 @@ logThis () {
     [ "${debug_log}" == "enable" ] && { echo "${logDateTime}: ${1}" >> "${log_dir}/${LogFile}"; }
 }
 
-init () {
-	# Make our log directory
-    [ ! -d $log_dir ] && { mkdir $log_dir; }
 
-    # Now make our log file
-    if [ -d $log_dir ]; then
-        [ ! -e "${log_dir}/${LogFile}" ] && { touch $log_dir/${LogFile}; logThis "Log file ${LogFile} created"; logThis "Date: ${logDateTime}"; }
-    else
-        echo "Error: Could not create log file in directory $log_dir."
-        exit 1
-    fi
-    echo " " >> "${log_dir}/${LogFile}"
+#init () {
+#    # Make our log directory
+#    [ ! -d $log_dir ] && { mkdir $log_dir; }
+#
+#    # Now make our log file
+#    if [ -d $log_dir ]; then
+#        [ ! -e "${log_dir}/${LogFile}" ] && { touch $log_dir/${LogFile}; logThis "Log file ${LogFile} created"; logThis "Date: ${logDateTime}"; }
+#    else
+#        echo "Error: Could not create log file in directory $log_dir."
+#        exit 1
+#    fi
+#    echo " " >> "${log_dir}/${LogFile}"
+#}
+
+purgeRAM () {
+    [ "${osx}" -gt "8" ] && { purge="/usr/sbin/purge"; }
+    [ "${osx}" -eq "8" ] && { purge="/usr/bin/purge"; }
+    [ "${osx}" -lt "8" ] && { logThis "Not sure if 'purge' is supported on your OS."; }
+
+    /usr/bin/sudo "${purge}";
+    [ "$?" -ne "0" ] && { logThis "Error, purge command failed with the status: $?"; }
 }
 
-purge () {
-    [[ "${osx}" == "9" ]] && { purge="/usr/sbin/purge"; }
-    [[ "${osx}" == "8" ]] && { purge="/usr/bin/purge"; }
-    [[ "${osx}" < "8" ]] && { logThis "Not sure if `purge` is supported on your OS."; }
-
-    sudo "${purge}";
-    [[ "$?" != "0" ]] && { logThis "Error, purge command failed with the status: $?"; }
-}
-
-purge
+purgeRAM
 
 exit 0
