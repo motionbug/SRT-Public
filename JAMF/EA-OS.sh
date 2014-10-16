@@ -15,7 +15,7 @@ osx=`sw_vers -productVersion | awk -F "." '{print $2}'`
 
 ### Functions
 oldSchool () {
-	productName=`sw_vers -productName`
+    productName=`sw_vers -productName`
 	productVersion=`sw_vers -productVersion`
 	buildVersion=`sw_vers -buildVersion`
 
@@ -33,6 +33,7 @@ newSchool () {
 	echo "<result>${productName2} ${productVersion} (${buildVersion})</result>"
 }
 
-[[ "${osx}" > "7" ]] && { newSchool; } || { oldSchool; }
+[ "${osx}" -gt "7" ] && { newSchool; } || { oldSchool; }
 
 exit 0
+
