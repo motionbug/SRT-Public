@@ -5,6 +5,7 @@
 # https://raw.github.com/stonyrivertech/SRT-Public/master/LICENSE 
 
 # Version 1.1.0 - 2013-10-29
+# Version 1.1.1 - 2014-10-16 
 
 ### Description 
 # Goal is to find out what vesion of the OS is running, PLUS if the machine is a client or server.
