@@ -5,10 +5,10 @@
 # https://raw.github.com/stonyrivertech/SRT-Public/master/LICENSE 
 
 # Created by Justin Rummel
-# Version 1.0.0 - 11/15/2012
+# Version 1.0.0 - 2012-11-15
 
-# Modified by
-# Version 
+# Modified by Justin Rummel
+# Version 1.1.0 - 2014-12-07
 
 ### Description 
 # VMWare Fusion Backup
@@ -17,6 +17,7 @@
 # The purpose of this script it to provide an automated system for backing up VMWare Fusion VMs that are 
 # running on OS X. This is achiveved by: 
 #	1) stop VMs 
+#		1.5) create a snapshot, trim some old snapshots (if desired)
 #	2) tgz to /tmp
 #	3) scp to a remote server 
 #	4) restart VMs
@@ -38,7 +39,7 @@ logDate=`date +"%Y.%m.%d"`
 logDateTime=`date +"%Y-%m-%d_%H.%M.%S"`
 
 log_dir="${HOME}/Library/Logs/${logtag}"
-log_runDir="/tmp/${logDate}/"
+log_runDir="/Volumes/DataHD/${logDate}/"
 vmLogFile="${logtag}-${logDate}.log"
 vmRunLog="RunningVMs-${logDate}.txt"
 
@@ -46,47 +47,50 @@ vmRunLog="RunningVMs-${logDate}.txt"
 vmrun="/Applications/VMware Fusion.app/Contents/Library/vmrun"
 vmSourcePath="/Users/Shared/VM"
 vmRunCount=`"${vmrun}" list | head -n 1 | awk -F ": " '{print $2}'`
+vmSnap="true"
+vmTrim="true"
+vmTrimCount="3"
 
 # Destination server info
 vmDestUser="sadmin"
 vmDestServer="server.domain.tld"
-vmDestPath="/Volumes/DataHD/VMBackups"
+vmDestPath="/Volumes/DataHD/VMBackups/"
 
 
 
 # Output to stdout and vmLogFile.
 logThis () {
-    logger -s -t "${logtag}" "$1"
-    [ "${debug_log}" == "enable" ] && { echo "${logDateTime}: ${1}" >> "${log_dir}/${vmLogFile}"; }
+	logger -s -t "${logtag}" "$1"
+	[ "${debug_log}" == "enable" ] && { echo "${logDateTime}: ${1}" >> "${log_dir}/${vmLogFile}"; }
 }
 
 init () {
 	# Make our log directory
-    [ ! -d $log_dir ] && { mkdir $log_dir; }
-    [ ! -d $log_runDir ] && { mkdir $log_runDir; }
+	[ ! -d $log_dir ] && { mkdir $log_dir; }
+	[ ! -d $log_runDir ] && { mkdir $log_runDir; }
 
-    # Make now make our log file
-    if [ -d $log_dir ]; then
-        [ ! -e "${log_dir}/${vmLogFile}" ] && { touch $log_dir/${vmLogFile}; logThis "Log file ${vmLogFile} created"; logThis "Date: ${logDateTime}"; }
-    else
-        echo "Error: Could not create log file in directory $log_dir."
-        exit 1
-    fi
-    echo " " >> "${log_dir}/${vmLogFile}"
+	# Make now make our log file
+	if [ -d $log_dir ]; then
+		[ ! -e "${log_dir}/${vmLogFile}" ] && { touch $log_dir/${vmLogFile}; logThis "Log file ${vmLogFile} created"; logThis "Date: ${logDateTime}"; }
+	else
+		echo "Error: Could not create log file in directory $log_dir."
+		exit 1
+	fi
+	echo " " >> "${log_dir}/${vmLogFile}"
 }
 
 ### Used for afp mounts.  Now using scp
 #vmCheck () {
 #	logThis "Checking to see if ${vmDestPath} is available"
 #	[ ! -d "/Volumes${vmDestPath}" ] && { vmDestMount; }
-#    echo " " >> "${log_dir}/${vmLogFile}"
+#	echo " " >> "${log_dir}/${vmLogFile}"
 #}
 
 ### Used for afp mounts.  Now using scp
 #vmDestMount () {
 #	logThis "${vmDestPath} is missing, I'll mount it for you"
 #	open "${vmDestProtocol}://${vmDestUser}:${vmDestPass}@${vmDestServer}${vmDestPath}"
-#    echo " " >> "${log_dir}/${vmLogFile}"
+#	echo " " >> "${log_dir}/${vmLogFile}"
 #}
 
 vmServerCheck () {
@@ -119,8 +123,8 @@ vmListCheck () {
 	logThis "Checking to see if any VMs are running, and if so stop them"
 
 	if [ "${vmRunCount}" != 0 ]; then
-		logThis "\tFound ${vmRunCount} VMs running... lets stop them"
-	    echo " " >> "${log_dir}/${vmLogFile}"
+		logThis "	Found ${vmRunCount} VMs running... lets stop them"
+		echo " " >> "${log_dir}/${vmLogFile}"
 
 		[ ! -e "${log_runDir}${vmRunLog}" ] && { logThis "${vmRunLog} log file missing, I'll create one"; touch "${log_runDir}${vmRunLog}"; }
 		
@@ -132,7 +136,7 @@ vmListCheck () {
 			vmFileName=`echo "${vmFile}" | sed 's/.*\///' | sed 's/\.vmwarevm//'`
 			
 			# Generating a list first, else if there are to many it may time out and not stop everything
-			logThis "\tAdding ${vmFileName} to shutdown list ${vmRunLog}"
+			logThis "	Adding ${vmFileName} to shutdown list ${vmRunLog}"
 			echo "${vmFile}" >> "${log_runDir}/${vmRunLog}"
 		done
 		echo " " >> "${log_dir}/${vmLogFile}"
@@ -146,7 +150,7 @@ vmListCheck () {
 	fi
 
 	logThis "No VMs are currently running... lets start the backups"
-    echo " " >> "${log_dir}/${vmLogFile}"
+	echo " " >> "${log_dir}/${vmLogFile}"
 }
 
 vmSnapshot () {
@@ -157,10 +161,24 @@ vmSnapshot () {
 		# echo "${vmwarevm[0]}"
 		vmxFile=`echo "${vmwarevm[0]}" | sed 's/.*\///' | sed 's/\.vmwarevm//'`
 
-		logThis "\tSnapshoting $vmxFile"
+		logThis "	Snapshoting ${vmxFile}"
 		"${vmrun}" -T fusion snapshot "${vmwarevm}" "${logtag}-${logDateTime}"
+
+		if [ "${vmTrim}" == "true" ]; then
+			logThis "Snapshot trim is enabled.  Lets clear off some old data."
+
+			snapCount=`"${vmrun}" listSnapshots "${vmwarevm}" | grep -c1 "${logtag}"`
+			logThis "	Found ${snapCount} snapshots on ${vmwarevm}, we keep only ${vmTrimCount}"
+
+			if [ "${snapCount}" > "${vmTrimCount}" ]; then
+				rmSnap=`"${vmrun}" listSnapshots "${vmwarevm}" | grep -m1 "${logtag}"`
+				"${vmrun}" deletesnapshot "${vmwarevm}" "${rmSnap}"
+				logThis "	Removed snapshot ${rmSnap} from ${vmwarevm}"
+			fi
+		fi
+
 	done
-    echo " " >> "${log_dir}/${vmLogFile}"
+	echo " " >> "${log_dir}/${vmLogFile}"
 }
 
 vmBackup () {
@@ -171,15 +189,15 @@ vmBackup () {
 		# echo "${vmwarevm[0]}"
 		vmxFile=`echo "${tarVM[0]}" | sed 's/.*\///' | sed 's/\.vmwarevm//'`
 
-		if [ -e "/tmp/${logDate}/${host}-${vmxFile}-${logDate}.tgz" ]; then
-			logThis "\then${vmxFile} already exists.  I'll skip this part"
+		if [ -e "${log_runDir}${host}-${vmxFile}-${logDate}.tgz" ]; then
+			logThis "	${vmxFile} already exists.  I'll skip this part"
 		else
-			logThis "\tBacking up $vmxFile"
-			tar -cvzf "/tmp/${logDate}/${host}-${vmxFile}-${logDate}.tgz" "${tarVM}"
+			logThis "	Backing up $vmxFile"
+			tar -cvzf "${log_runDir}${host}-${vmxFile}-${logDate}.tgz" "${tarVM}"
 		fi
-		rsync --force --ignore-errors --delete --backup --backup-dir=/"${logDate}" -az -e ssh "/tmp/${logDate}/${host}-${vmxFile}-${logDate}.tgz" "${vmDestUser}@${vmDestServer}:${vmDestPath}"
+		rsync --force --ignore-errors --delete --backup --backup-dir=/"${logDate}" -az -e ssh "${log_runDir}${host}-${vmxFile}-${logDate}.tgz" "${vmDestUser}@${vmDestServer}:${vmDestPath}"
 	done
-    echo " " >> "${log_dir}/${vmLogFile}"
+	echo " " >> "${log_dir}/${vmLogFile}"
 }
 
 vmStart () {
@@ -188,19 +206,19 @@ vmStart () {
 		
 		cat "${log_runDir}/${vmRunLog}" | while read restartVM;
 		do
-			logThis "\tStarting ${restartVM}"
+			logThis "	Starting ${restartVM}"
 			"${vmrun}" -T fusion start "${restartVM}"
 		done
 	else
 		logThis "We did not stop any VMs, so we're done"
 	fi
-    echo " " >> "${log_dir}/${vmLogFile}"
+	echo " " >> "${log_dir}/${vmLogFile}"
 }
 
 vmClean () {
-	logThis "Cleaning up our mess.  Removing everything in /tmp/${logDate}"
-    echo " " >> "${log_dir}/${vmLogFile}"
-	rm -rf "/tmp/${logDate}/"
+	logThis "Cleaning up our mess.  Removing everything in ${log_runDir}"
+	echo " " >> "${log_dir}/${vmLogFile}"
+	rm -rf "${log_runDir}"
 }
 
 init 			# Create our log files
@@ -208,7 +226,7 @@ init 			# Create our log files
 vmServerCheck 	# ping for reply on our destination server
 vmDriveCheck	# HDD check.  Won't actually stop the script but good to keep track
 vmListCheck 	# Are any VMs Running, stop them if yes
-vmSnapshot 		# Perform a snapshot before tgz => rsync
+[[ "${vmSnap}" == "true" ]] && { vmSnapshot; } 		# Perform a snapshot before tgz => rsync
 vmBackup 		# tgz to /tmp then rsync files
 vmStart 		# start any VMs that were stopped by vmServerCheck
 vmClean 		# remove /tmp folder that hosted our .tgz and Running log file
