@@ -6,9 +6,11 @@
 
 # Created by Justin Rummel
 # Version 1.0.1 - 2014-02-05
+# Version 1.0.2 - 2014-12-17
 
 # Modified by Justin
 # Version 1.0.1 reversed logic to find if compliant vs. not compliant.
+# Version 1.0.2 not sure why logic is so hard.
 
 
 ### Description
@@ -57,15 +59,15 @@ adobeFlash () {
 	oct3=`echo "${flashVersion}" | awk -F "." '{print $3}'`
 	oct4=`echo "${flashVersion}" | awk -F "." '{print $4}'`
 
-#	echo "$oct1 -ge $Xoct1"
-#	echo "$oct2 -ge $Xoct2"
-#	echo "$oct3 -ge $Xoct3"
+#	echo "$oct1 -lt $Xoct1"
+#	echo "$oct2 -lt $Xoct2"
+#	echo "$oct3 -lt $Xoct3"
 #	echo "$oct4 -ge $Xoct4"
 
-	[[ "${oct1}" -ge "${Xoct1}" ]] && { echo "<result>Compliant</result>"; exit 0; }
-	[[ "${oct2}" -ge "${Xoct2}" ]] && { echo "<result>Compliant</result>"; exit 0; }
-	[[ "${oct3}" -ge "${Xoct3}" ]] && { echo "<result>Compliant</result>"; exit 0; }
-	[[ "${oct4}" -ge "${Xoct4}" ]] && { echo "<result>Compliant</result>"; exit 0; } || { echo "<result>Not Compliant</result>"; }
+	[[ "${oct1}" -lt "${Xoct1}" ]] && { echo "<result>Not Compliant</result>"; exit 0; }
+	[[ "${oct2}" -lt "${Xoct2}" ]] && { echo "<result>Not Compliant</result>"; exit 0; }
+	[[ "${oct3}" -lt "${Xoct3}" ]] && { echo "<result>Not Compliant</result>"; exit 0; }
+	[[ "${oct4}" -lt "${Xoct4}" ]] && { echo "<result>Not Compliant</result>"; exit 0; } || { echo "<result>Compliant</result>"; }
 }
 
 [ "$flashVendor" == "" ] && { echo "<result>Flash Plug-In Not Available</result>"; exit 0; } || { adobeFlash; }
