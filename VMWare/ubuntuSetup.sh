@@ -2,20 +2,19 @@
 
 # This script was developed BY Stony River Technologies (SRT)
 # ALL scripts are covered by SRT's License found at:
-# https://raw.github.com/stonyrivertech/SRT-Public/master/LICENSE 
+# https://raw.github.com/stonyrivertech/SRT-Public/master/LICENSE
 
 # Created by Justin Rummel
 # Version 1.0.0 - 2013-3-28
 
-# Modified by
-# Version 
+# Modified by Justin Rummel
+# Version 1.1.0 - 2015-01-21
 
-
-### Description 
-# Goal is to have a script that performs the basic setup needs for a brand new ubuntu server.
+### Description
+# Goal is to have a script that performs the basic setup needs for a brand new Ubuntu Server.
 
 ### Assumptions
-# -	You are installing the server from Ubuntu's setup assistant, not using VMware's "easy" 
+# -	You are installing the server from Ubuntu's setup assistant, not using VMware's "easy"
 # 	setup assistant.  The reason for this is Ubuntu will ask you for a custom hostname.
 # -	There is no encryption on the volume
 # -	The Partitioning method is the default "use entire disk w/ LVM"
@@ -47,7 +46,7 @@ logThis () {
 }
 
 init () {
-	# Make our log directory
+    # Make our log directory
     [ ! -d $log_dir ] && { mkdir $log_dir; }
 
     # Now make our log file
@@ -61,15 +60,25 @@ init () {
 }
 
 update() {
-	logThis "Running apt-get update"
-	getUpdates=$(sudo /usr/bin/apt-get -qy update > /dev/null)
-	[ $? != 0 ] && { logThis "apt-get update had an error.  Stopping now!"; exit 1; } || { logThis "apt-get update completed successfully."; }
+	echo -n "Do you want run 'apt-get update'? [y|n]:"
+	read -n 1 replySTATIC
+	echo " "
+	if [ "${replySTATIC}" == "y" ]; then
+		logThis "Running apt-get update"
+		getUpdates=$(sudo /usr/bin/apt-get -qy update > /dev/null)
+		[ $? != 0 ] && { logThis "apt-get update had an error.  Stopping now!"; exit 1; } || { logThis "apt-get update completed successfully."; }
+	fi
 }
 
 upgrade() {
-	logThis "Running apt-get dist-upgrade (this may take some time.  Patience.)"
-	getUpgrades=$(sudo /usr/bin/apt-get -qy dist-upgrade > /dev/null)
-	[ $? != 0 ] && { logThis "apt-get dist-upgrade had an error.  Stopping now!"; exit 1; } || { logThis "apt-get dist-upgrade completed successfully."; }
+	echo -n "Do you want run 'apt-get dist-upgrade'? [y|n]:"
+	read -n 1 replySTATIC
+	echo " "
+	if [ "${replySTATIC}" == "y" ]; then
+		logThis "Running apt-get dist-upgrade (this may take some time.  Patience.)"
+		getUpgrades=$(sudo /usr/bin/apt-get -qy dist-upgrade > /dev/null)
+		[ $? != 0 ] && { logThis "apt-get dist-upgrade had an error.  Stopping now!"; exit 1; } || { logThis "apt-get dist-upgrade completed successfully."; }
+	fi
 }
 
 sshServer() {
@@ -87,7 +96,7 @@ setNetwork() {
 	echo -n "Do you want to set a static IP? [y|n]:"
 	read -n 1 replySTATIC
 	echo " "
-	[ "${replySTATIC}" != "y" ] && { logThis "Keeping DHCP settings."; } || { static; }
+	[ "${replySTATIC}" != "y" ] && { logThis "Keeping DHCP settings."; findName; } || { static; }
 }
 
 static() {
@@ -144,35 +153,37 @@ setInterface () {
 	interface="/etc/network/interfaces"
 
 	echo "# This file describes the network interfaces available on your system" > "${interface}"
-	echo "	# and how to activate them. For more information, see interfaces(5)." >> "${interface}"
+	echo "# and how to activate them. For more information, see interfaces(5)." >> "${interface}"
 	echo " " >> "${interface}"
-	echo "	# The loopback network interface" >> "${interface}"
-	echo "	auto lo" >> "${interface}"
-	echo "	iface lo inet loopback" >> "${interface}"
+	echo "# The loopback network interface" >> "${interface}"
+	echo "auto lo" >> "${interface}"
+	echo "iface lo inet loopback" >> "${interface}"
 	echo " " >> "${interface}"
-	echo "	# The primary network interface" >> "${interface}"
-	echo "	auto eth0" >> "${interface}"
-	echo "	iface eth0 inet static" >> "${interface}"
-	echo " " >> "${interface}"
+	echo "# The primary network interface" >> "${interface}"
+	echo "auto eth0" >> "${interface}"
+	echo "iface eth0 inet static" >> "${interface}"
 	echo "address ${1}" >> "${interface}"
 	echo "netmask ${2}" >> "${interface}"
 	echo "gateway ${3}" >> "${interface}"
 	echo "dns-nameservers ${4}" >> "${interface}"
 	echo "dns-search ${5}" >> "${interface}"
 
-	sudo ifdown eth0
-	sudo ifup eth0
+	#sudo ifdown eth0
+	#sudo ifup eth0
+	#findName
+
+	echo "Reboot Your Server now! (sudo reboot), then walk through this script again but saying no to all the items already completed."
 }
 
 findName () {
 	logThis "Finding your IP Address and DNS record"
 	ipAddress=`ip addr show eth0 | awk '/inet / {print $2}' | cut -d/ -f1`
-	dnsName=`echo "${ipAddress}" | awk -F " " '{print $NF}' | sed 's/\.$//'`
+	dnsName=`host "${ipAddress}" | awk -F " " '{print $NF}' | sed 's/\.$//'`
 
-	echo -n "Your IP address is ${ipAddress} with the DNS name ${dnsName}, correct? [y|n]: "
+	echo -n "Your IP address is ${ipAddress} with the DNS name ${dnsName} correct? [y|n]: "
 	read -n 1 replyIP
 	echo " "
-	[ "${replyIP}" != "y" ] && { logThis "You just set your IP address, and now it's wrong?  Lets just stop and be safe"; exit 1; } || { setName "${dnsName}" }
+	[ "${replyIP}" != "y" ] && { logThis "You just set your IP address, and now it's wrong?  Lets just stop and be safe"; exit 1; } || { setName "${dnsName}"; }
 }
 
 setName () {
@@ -190,15 +201,15 @@ setName () {
 	echo "::1     localhost ip6-localhost ip6-loopback" >> "${hosts}"
 	echo "ff02::1 ip6-allnodes" >> "${hosts}"
 	echo "ff02::2 ip6-allrouters" >> "${hosts}"
-}
 
+	echo "Reboot Your Server now! (sudo reboot)"
+}
 
 verifyRoot
 #init
 update
-upgrade	
+upgrade
 sshServer
 setNetwork
-findName
 
 exit 0
