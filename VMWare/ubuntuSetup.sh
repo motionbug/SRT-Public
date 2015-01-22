@@ -92,6 +92,17 @@ installOpenssh() {
 	[ $? != 0 ] && { logThis "apt-get install openssh-server had an error.  Stopping now!"; exit 1; } || { logThis "apt-get install openssh-server completed successfully."; }
 }
 
+curlCLI() {
+	curlCheck=$(which curl)
+	[ $? != 0 ] && { logThis "curl is NOT installed."; installCurl; } || { logThis "curl is available."; }
+}
+
+installCurl() {
+	logThis "Installing curl."
+	installSSH=$(sudo /usr/bin/apt-get install curl -qy)
+	[ $? != 0 ] && { logThis "apt-get install curl had an error.  Stopping now!"; exit 1; } || { logThis "apt-get install curl completed successfully."; }
+}
+
 setNetwork() {
 	echo -n "Do you want to set a static IP? [y|n]:"
 	read -n 1 replySTATIC
@@ -102,38 +113,28 @@ setNetwork() {
 static() {
 	echo -n "Type the IP address for this server: "
 	read IP
-	echo -n "Is this correct? ${IP} [y|n]: "
-	read -n 1 replyIP
+	logThis "Setting IP for ${IP}"
 	echo " "
-	[ "${replyIP}" != "y" ] && { logThis "Keep calm, carry on.  Lets start over"; setNetwork; } || { logThis "Setting IP for ${IP}"; }
 
 	echo -n "Type the subnet mask for this server: "
 	read MASK
-	echo -n "Is this correct? ${MASK} [y|n]: "
-	read -n 1 replyMASK
+	logThis "Setting subnet mask for ${MASK}"
 	echo " "
-	[ "${replyMASK}" != "y" ] && { logThis "Keep calm, carry on.  Lets start over"; setNetwork; } || { logThis "Setting subnet mask for ${MASK}"; }
 
 	echo -n "Type the Gateway for this server: "
 	read GATE
-	echo -n "Is this correct? ${GATE} [y|n]: "
-	read -n 1 replyGATE
+	logThis "Setting Gateway for ${GATE}"
 	echo " "
-	[ "${replyGATE}" != "y" ] && { logThis "Keep calm, carry on.  Lets start over"; setNetwork; } || { logThis "Setting Gateway for ${GATE}"; }
 
 	echo -n "Type your DNS servers IP address (separated by a space): "
 	read DNS
-	echo -n "Is this correct? ${DNS} [y|n]: "
-	read -n 1 replyDNS
+	logThis "Setting DNS servers for ${DNS}"
 	echo " "
-	[ "${replyDNS}" != "y" ] && { logThis "Keep calm, carry on.  Lets start over"; setNetwork; } || { logThis "Setting DNS servers for ${DNS}"; }
 
 	echo -n "Type the DNS Search Name: "
 	read SEARCH
-	echo -n "Is this correct? ${SEARCH} [y|n]: "
-	read -n 1 replySEARCH
+	logThis "Setting DNS Search Name for ${SEARCH}"
 	echo " "
-	[ "${replySEARCH}" != "y" ] && { logThis "Keep calm, carry on.  Lets start over"; setNetwork; } || { logThis "Setting DNS Search Name for ${SEARCH}"; }
 
 	echo "Final check!"
 	echo "address ${IP}"
@@ -167,10 +168,7 @@ setInterface () {
 	echo "gateway ${3}" >> "${interface}"
 	echo "dns-nameservers ${4}" >> "${interface}"
 	echo "dns-search ${5}" >> "${interface}"
-
-	#sudo ifdown eth0
-	#sudo ifup eth0
-	#findName
+	echo " "
 
 	echo "Reboot Your Server now! (sudo reboot), then walk through this script again but saying no to all the items already completed."
 }
@@ -207,9 +205,10 @@ setName () {
 
 verifyRoot
 #init
+sshServer
+curlCLI
 update
 upgrade
-sshServer
 setNetwork
 
 exit 0
