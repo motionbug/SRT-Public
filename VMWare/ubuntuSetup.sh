@@ -40,8 +40,8 @@ verifyRoot () {
     [ `id -u` != 0 ] && { echo "$0: Please run this as root."; exit 0; }
 }
 
-# Output to stdout and LogFile.
 logThis () {
+	# Output to stdout and LogFile.
     logger -s -t "${logtag}" "$1"
     [ "${debug_log}" == "enable" ] && { echo "${logDateTime}: ${1}" >> "${log_dir}/${LogFile}"; }
 }
@@ -164,6 +164,34 @@ setInterface () {
 	sudo ifup eth0
 }
 
+findName () {
+	logThis "Finding your IP Address and DNS record"
+	ipAddress=`ip addr show eth0 | awk '/inet / {print $2}' | cut -d/ -f1`
+	dnsName=`echo "${ipAddress}" | awk -F " " '{print $NF}' | sed 's/\.$//'`
+
+	echo -n "Your IP address is ${ipAddress} with the DNS name ${dnsName}, correct? [y|n]: "
+	read -n 1 replyIP
+	echo " "
+	[ "${replyIP}" != "y" ] && { logThis "You just set your IP address, and now it's wrong?  Lets just stop and be safe"; exit 1; } || { setName "${dnsName}" }
+}
+
+setName () {
+	logThis "Setting your server name with the DNS record of your IP Address"
+	hosts="/etc/hosts"
+	hostname="/etc/hostname"
+
+	host=`echo "${dnsName}" | awk -F "." '{print $1}'`
+	echo "${host}" > "${hostname}"
+
+	echo "127.0.0.1	localhost" > "${hosts}"
+	echo "127.0.1.1	${host}	${dnsName}" >> "${hosts}"
+	echo " " >> "${hosts}"
+	echo "# The following lines are desirable for IPv6 capable hosts" >> "${hosts}"
+	echo "::1     localhost ip6-localhost ip6-loopback" >> "${hosts}"
+	echo "ff02::1 ip6-allnodes" >> "${hosts}"
+	echo "ff02::2 ip6-allrouters" >> "${hosts}"
+}
+
 
 verifyRoot
 #init
@@ -171,5 +199,6 @@ update
 upgrade	
 sshServer
 setNetwork
+findName
 
 exit 0
